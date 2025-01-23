@@ -1,0 +1,299 @@
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| classdb            |
+| company            |
+| employee           |
+| hospital           |
+| information_schema |
+| movie              |
+| mydatabase         |
+| mysql              |
+| performance_schema |
+| root               |
+| shopping           |
+| student            |
+| sys                |
+| utd                |
++--------------------+
+14 rows in set (0.10 sec)
+
+mysql> CREATE DATABASE RetailDataWarehouse;
+Query OK, 1 row affected (0.03 sec)
+
+mysql> show databases;
++---------------------+
+| Database            |
++---------------------+
+| classdb             |
+| company             |
+| employee            |
+| hospital            |
+| information_schema  |
+| movie               |
+| mydatabase          |
+| mysql               |
+| performance_schema  |
+| retaildatawarehouse |
+| root                |
+| shopping            |
+| student             |
+| sys                 |
+| utd                 |
++---------------------+
+15 rows in set (0.00 sec)
+
+mysql> ^C
+mysql>  USE RetailDataWarehouse;
+Database changed
+mysql> CREATE TABLE product_dim (
+    ->     product_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     product_name VARCHAR(100) NOT NULL,
+    ->     category VARCHAR(50),
+    ->     price DECIMAL(10, 2)
+    ->  );
+Query OK, 0 rows affected (0.07 sec)
+
+mysql>  CREATE TABLE customer_dim (
+    ->     customer_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     customer_name VARCHAR(100) NOT NULL,
+    ->     gender ENUM('Male', 'Female', 'Other'),
+    ->     email VARCHAR(100),
+    ->     city VARCHAR(50)
+    ->  );
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>  CREATE TABLE store_dim (
+    ->     store_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     store_name VARCHAR(100),
+    ->     location VARCHAR(100),
+    ->     manager_name VARCHAR(100)
+    ->  );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>  CREATE TABLE time_dim (
+    ->     time_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     date DATE NOT NULL,
+    ->     day_of_week VARCHAR(10),
+    ->     month VARCHAR(10),
+    ->     year INT,
+    ->     quarter VARCHAR(10)
+    ->  );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>  CREATE TABLE sales_fact (
+    ->     sales_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     product_id INT NOT NULL,
+    ->     customer_id INT NOT NULL,
+    ->     store_id INT NOT NULL,
+    ->     time_id INT NOT NULL,
+    ->     quantity INT,
+    ->     total_sales DECIMAL(15, 2),
+    ->     FOREIGN KEY (product_id) REFERENCES product_dim(product_id),
+    ->     FOREIGN KEY (customer_id) REFERENCES customer_dim(customer_id),
+    ->     FOREIGN KEY (store_id) REFERENCES store_dim(store_id),
+    ->     FOREIGN KEY (time_id) REFERENCES time_dim(time_id)
+    ->  );
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> Insert into product_dim
+    ->  INSERT INTO product_dim (product_name, category, price)
+    ->  VALUES
+    ->  ('Laptop', 'Electronics', 800.00),
+    ->  ('Chair', 'Furniture', 120.00),
+    ->  ('Book', 'Stationery', 15.00);
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'INSERT INTO product_dim (product_name, category, price)
+ VALUES
+ ('Laptop', 'Ele' at line 2
+mysql>  INSERT INTO product_dim (product_name, category, price)
+    ->  VALUES
+    ->  ('Laptop', 'Electronics', 800.00),
+    ->  ('Chair', 'Furniture', 120.00),
+    ->  ('Book', 'Stationery', 15.00);
+Query OK, 3 rows affected (0.02 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql>  INSERT INTO customer_dim (customer_name, gender, email, city)
+    ->  VALUES
+    ->  ('John Doe', 'Male', 'john@example.com', 'New York'),
+    ->  ('Jane Smith', 'Female', 'jane@example.com', 'San Francisco'),
+    ->  ('Ali Khan', 'Male', 'ali@example.com', 'Chicago');
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql>  INSERT INTO store_dim (store_name, location, manager_name)
+    -> VALUES
+    ->  ('TechStore', 'New York', 'Emily White'),
+    ->  ('HomeDecor', 'San Francisco', 'Robert Brown'),
+    ->  ('BookWorld', 'Chicago', 'Sophia Johnson');
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql>  INSERT INTO time_dim (date, day_of_week, month, year, quarter)
+    ->  VALUES
+    ->  ('2025-01-20', 'Monday', 'January', 2025, 'Q1'),
+    ->  ('2025-01-21', 'Tuesday', 'January', 2025, 'Q1'),
+    ->  ('2025-01-22', 'Wednesday', 'January', 2025, 'Q1');
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql>  INSERT INTO sales_fact (product_id, customer_id, store_id, time_id, quantity, total_sales)
+    ->  VALUES
+    ->  (1, 1, 1, 1, 2, 1600.00),
+    ->  (2, 2, 2, 2, 4, 480.00),
+    ->  (3, 3, 3, 3, 10, 150.00);
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql>  DESCRIBE product_dim;
++--------------+---------------+------+-----+---------+----------------+
+| Field        | Type          | Null | Key | Default | Extra          |
++--------------+---------------+------+-----+---------+----------------+
+| product_id   | int           | NO   | PRI | NULL    | auto_increment |
+| product_name | varchar(100)  | NO   |     | NULL    |                |
+| category     | varchar(50)   | YES  |     | NULL    |                |
+| price        | decimal(10,2) | YES  |     | NULL    |                |
++--------------+---------------+------+-----+---------+----------------+
+4 rows in set (0.02 sec)
+
+mysql>  DESCRIBE customer_dim;
++---------------+-------------------------------+------+-----+---------+----------------+
+| Field         | Type                          | Null | Key | Default | Extra          |
++---------------+-------------------------------+------+-----+---------+----------------+
+| customer_id   | int                           | NO   | PRI | NULL    | auto_increment |
+| customer_name | varchar(100)                  | NO   |     | NULL    |                |
+| gender        | enum('Male','Female','Other') | YES  |     | NULL    |                |
+| email         | varchar(100)                  | YES  |     | NULL    |                |
+| city          | varchar(50)                   | YES  |     | NULL    |                |
++---------------+-------------------------------+------+-----+---------+----------------+
+5 rows in set (0.00 sec)
+
+mysql>  DESCRIBE store_dim;
++--------------+--------------+------+-----+---------+----------------+
+| Field        | Type         | Null | Key | Default | Extra          |
++--------------+--------------+------+-----+---------+----------------+
+| store_id     | int          | NO   | PRI | NULL    | auto_increment |
+| store_name   | varchar(100) | YES  |     | NULL    |                |
+| location     | varchar(100) | YES  |     | NULL    |                |
+| manager_name | varchar(100) | YES  |     | NULL    |                |
++--------------+--------------+------+-----+---------+----------------+
+4 rows in set (0.00 sec)
+
+mysql>  DESCRIBE time_dim;
++-------------+-------------+------+-----+---------+----------------+
+| Field       | Type        | Null | Key | Default | Extra          |
++-------------+-------------+------+-----+---------+----------------+
+| time_id     | int         | NO   | PRI | NULL    | auto_increment |
+| date        | date        | NO   |     | NULL    |                |
+| day_of_week | varchar(10) | YES  |     | NULL    |                |
+| month       | varchar(10) | YES  |     | NULL    |                |
+| year        | int         | YES  |     | NULL    |                |
+| quarter     | varchar(10) | YES  |     | NULL    |                |
++-------------+-------------+------+-----+---------+----------------+
+6 rows in set (0.00 sec)
+
+mysql>  DESCRIBE sales_fact;
++-------------+---------------+------+-----+---------+----------------+
+| Field       | Type          | Null | Key | Default | Extra          |
++-------------+---------------+------+-----+---------+----------------+
+| sales_id    | int           | NO   | PRI | NULL    | auto_increment |
+| product_id  | int           | NO   | MUL | NULL    |                |
+| customer_id | int           | NO   | MUL | NULL    |                |
+| store_id    | int           | NO   | MUL | NULL    |                |
+| time_id     | int           | NO   | MUL | NULL    |                |
+| quantity    | int           | YES  |     | NULL    |                |
+| total_sales | decimal(15,2) | YES  |     | NULL    |                |
++-------------+---------------+------+-----+---------+----------------+
+7 rows in set (0.00 sec)
+
+mysql>  SELECT * FROM product_dim;
++------------+--------------+-------------+--------+
+| product_id | product_name | category    | price  |
++------------+--------------+-------------+--------+
+|          1 | Laptop       | Electronics | 800.00 |
+|          2 | Chair        | Furniture   | 120.00 |
+|          3 | Book         | Stationery  |  15.00 |
++------------+--------------+-------------+--------+
+3 rows in set (0.00 sec)
+
+mysql>  SELECT * FROM customer_dim;
++-------------+---------------+--------+------------------+---------------+
+| customer_id | customer_name | gender | email            | city          |
++-------------+---------------+--------+------------------+---------------+
+|           1 | John Doe      | Male   | john@example.com | New York      |
+|           2 | Jane Smith    | Female | jane@example.com | San Francisco |
+|           3 | Ali Khan      | Male   | ali@example.com  | Chicago       |
++-------------+---------------+--------+------------------+---------------+
+3 rows in set (0.00 sec)
+
+mysql>  SELECT * FROM store_dim;
++----------+------------+---------------+----------------+
+| store_id | store_name | location      | manager_name   |
++----------+------------+---------------+----------------+
+|        1 | TechStore  | New York      | Emily White    |
+|        2 | HomeDecor  | San Francisco | Robert Brown   |
+|        3 | BookWorld  | Chicago       | Sophia Johnson |
++----------+------------+---------------+----------------+
+3 rows in set (0.00 sec)
+
+mysql>  SELECT * FROM time_dim;
++---------+------------+-------------+---------+------+---------+
+| time_id | date       | day_of_week | month   | year | quarter |
++---------+------------+-------------+---------+------+---------+
+|       1 | 2025-01-20 | Monday      | January | 2025 | Q1      |
+|       2 | 2025-01-21 | Tuesday     | January | 2025 | Q1      |
+|       3 | 2025-01-22 | Wednesday   | January | 2025 | Q1      |
++---------+------------+-------------+---------+------+---------+
+3 rows in set (0.00 sec)
+
+mysql>  SELECT * FROM sales_fact;
++----------+------------+-------------+----------+---------+----------+-------------+
+| sales_id | product_id | customer_id | store_id | time_id | quantity | total_sales |
++----------+------------+-------------+----------+---------+----------+-------------+
+|        1 |          1 |           1 |        1 |       1 |        2 |     1600.00 |
+|        2 |          2 |           2 |        2 |       2 |        4 |      480.00 |
+|        3 |          3 |           3 |        3 |       3 |       10 |      150.00 |
++----------+------------+-------------+----------+---------+----------+-------------+
+3 rows in set (0.00 sec)
+
+mysql>  SELECT p.product_name, SUM(s.total_sales) AS total_revenue
+    ->  FROM sales_fact s
+    ->  JOIN product_dim p ON s.product_id = p.product_id
+    ->  GROUP BY p.product_name;
++--------------+---------------+
+| product_name | total_revenue |
++--------------+---------------+
+| Laptop       |       1600.00 |
+| Chair        |        480.00 |
+| Book         |        150.00 |
++--------------+---------------+
+3 rows in set (0.00 sec)
+
+mysql>  SELECT c.customer_name, SUM(s.total_sales) AS total_spent
+    ->  FROM sales_fact s
+    ->  JOIN customer_dim c ON s.customer_id = c.customer_id
+    ->  GROUP BY c.customer_name;
++---------------+-------------+
+| customer_name | total_spent |
++---------------+-------------+
+| John Doe      |     1600.00 |
+| Jane Smith    |      480.00 |
+| Ali Khan      |      150.00 |
++---------------+-------------+
+3 rows in set (0.00 sec)
+
+mysql>  SELECT st.store_name, SUM(s.total_sales) AS total_store_sales
+    ->  FROM sales_fact s
+    ->  JOIN store_dim st ON s.store_id = st.store_id
+    ->  GROUP BY st.store_name;
++------------+-------------------+
+| store_name | total_store_sales |
++------------+-------------------+
+| TechStore  |           1600.00 |
+| HomeDecor  |            480.00 |
+| BookWorld  |            150.00 |
++------------+-------------------+
+3 rows in set (0.00 sec)
+
+mysql>
