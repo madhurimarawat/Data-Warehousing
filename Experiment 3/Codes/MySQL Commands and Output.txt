@@ -1,0 +1,154 @@
+mysql> SHOW DATABASES;
++---------------------+
+| Database            |
++---------------------+
+| classdb             |
+| company             |
+| employee            |
+| hospital            |
+| information_schema  |
+| movie               |
+| mydatabase          |
+| mysql               |
+| performance_schema  |
+| retaildatawarehouse |
+| root                |
+| shopping            |
+| student             |
+| sys                 |
+| utd                 |
++---------------------+
+15 rows in set (0.07 sec)
+
+mysql> USE RetailDataWarehouse;
+Database changed
+mysql> CREATE TABLE product_category (
+    ->     category_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     category_name VARCHAR(100) NOT NULL
+    -> );
+Query OK, 0 rows affected (0.06 sec)
+
+mysql>
+mysql> CREATE TABLE product_dim (
+    ->     product_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     product_name VARCHAR(100) NOT NULL,
+    ->     category_id INT,
+    ->     brand VARCHAR(50),
+    ->     FOREIGN KEY (category_id) REFERENCES product_category(category_id)
+    -> );
+ERROR 1050 (42S01): Table 'product_dim' already exists
+mysql> CREATE TABLE product_dim (^Z
+    -> ;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
+mysql> CREATE TABLE product_dim_normalized (
+    ->     product_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     product_name VARCHAR(100) NOT NULL,
+    ->     category_id INT,
+    ->     brand VARCHAR(50),
+    ->     FOREIGN KEY (category_id) REFERENCES product_category(category_id)
+    -> );
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> CREATE TABLE region (
+    ->     region_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     region_name VARCHAR(100) NOT NULL
+    -> );
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> CREATE TABLE city (
+    ->     city_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     city_name VARCHAR(100) NOT NULL,
+    ->     region_id INT,
+    ->     FOREIGN KEY (region_id) REFERENCES region(region_id)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+mysql> CREATE TABLE customer_dim_normalized (
+    ->     customer_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     customer_name VARCHAR(100) NOT NULL,
+    ->     city_id INT,
+    ->     FOREIGN KEY (city_id) REFERENCES city(city_id)
+    -> );
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> CREATE TABLE time_dim (
+    ->     time_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     date DATE NOT NULL,
+    ->     day_of_week VARCHAR(10),
+    ->     month VARCHAR(10),
+    ->     quarter VARCHAR(10),
+    ->     year INT
+    -> );
+ERROR 1050 (42S01): Table 'time_dim' already exists
+mysql> CREATE TABLE time_dim_normalized (
+    ->     time_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     date DATE NOT NULL,
+    ->     day_of_week VARCHAR(10),
+    ->     month VARCHAR(10),
+    ->     quarter VARCHAR(10),
+    ->     year INT
+    -> );
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> CREATE TABLE sales_fact (
+    ->     sale_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     product_id INT,
+    ->     customer_id INT,
+    ->     store_id INT,
+    ->     time_id INT,
+    ->     amount DECIMAL(10, 2),
+    ->     quantity INT,
+    ->     FOREIGN KEY (product_id) REFERENCES product_dim_normalized(product_id),
+    ->     FOREIGN KEY (customer_id) REFERENCES customer_dim_normalized(customer_id),
+    ->     FOREIGN KEY (time_id) REFERENCES time_dim_normalized(time_id)
+    -> );
+ERROR 1050 (42S01): Table 'sales_fact' already exists
+mysql> CREATE TABLE sales_fact_normalized (
+    ->     sale_id INT PRIMARY KEY AUTO_INCREMENT,
+    ->     product_id INT,
+    ->     customer_id INT,
+    ->     store_id INT,
+    ->     time_id INT,
+    ->     amount DECIMAL(10, 2),
+    ->     quantity INT,
+    ->     FOREIGN KEY (product_id) REFERENCES product_dim_normalized(product_id),
+    ->     FOREIGN KEY (customer_id) REFERENCES customer_dim_normalized(customer_id),
+    ->     FOREIGN KEY (time_id) REFERENCES time_dim_normalized(time_id)
+    -> );
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> INSERT INTO product_category (category_name) VALUES ('Electronics');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> INSERT INTO product_dim_normalized (product_name, category_id, brand) VALUES ('Laptop', 1, 'Dell');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO region (region_name) VALUES ('North');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO city (city_name, region_id) VALUES ('Delhi', 1);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO customer_dim_normalized (customer_name, city_id) VALUES ('John Doe', 1);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO time_dim_normalized (date, day_of_week, month, quarter, year) VALUES ('2025-02-02', 'Monday', 'February', 'Q1', 2025);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO sales_fact_normalized (product_id, customer_id, store_id, time_id, amount, quantity) VALUES (1, 1, 1, 1, 1000, 2);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> SELECT c.customer_name, p.product_name, s.amount
+    -> FROM sales_fact_normalized s
+    -> JOIN customer_dim_normalized c ON s.customer_id = c.customer_id
+    -> JOIN product_dim_normalized p ON s.product_id = p.product_id;
++---------------+--------------+---------+
+| customer_name | product_name | amount  |
++---------------+--------------+---------+
+| John Doe      | Laptop       | 1000.00 |
++---------------+--------------+---------+
+1 row in set (0.00 sec)
+
+mysql>
