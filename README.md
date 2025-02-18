@@ -112,8 +112,8 @@ Data-Warehousing/
 ### **Project Folder Structure**  
 
 - **Codes** 💻 (If applicable)  
-  Contains source code files used for data processing and analysis in each experiment. These scripts are essential for executing tasks within the experiment. Additionally, this folder includes a **MySQL Commands and Output** text file that documents specific command-line operations and their results.  
-  - e.g., `main.py`, `process_data.py`, `MySQL_Commands_Output.txt`  
+Contains the source code files used for data processing and analysis in each experiment. These scripts are essential for executing tasks within the experiment. Additionally, the following files are included:
+  - **MySQL Commands and Output (TXT)**: This text file contains the specific MySQL command-line operations used in the experiment, documenting both the input commands and their corresponding outputs. A detailed explanation of these commands and their results can be found in the **Documentation** folder, available in both **MD** and **PDF** formats.
 
 - **Dataset** 📁 (If applicable)  
   Stores datasets used in experiments, ensuring easy access and organization.  
