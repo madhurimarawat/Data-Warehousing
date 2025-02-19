@@ -1,0 +1,113 @@
+mysql> use RetailDataWarehouse
+Database changed
+mysql> show tables;
++-------------------------------+
+| Tables_in_retaildatawarehouse |
++-------------------------------+
+| city                          |
+| customer_dim                  |
+| customer_dim_normalized       |
+| product_category              |
+| product_dim                   |
+| product_dim_normalized        |
+| region                        |
+| sales_fact                    |
+| sales_fact_normalized         |
+| store_dim                     |
+| time_dim                      |
+| time_dim_normalized           |
++-------------------------------+
+12 rows in set (0.04 sec)
+
+mysql> CREATE INDEX idx_sales_date ON Sales (Date_Sold);
+ERROR 1072 (42000): Key column 'Date_Sold' doesn't exist in table
+mysql> CREATE INDEX idx_sales_region_product ON Sales (Region, Product);
+Query OK, 0 rows affected (0.06 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT * FROM Sales WHERE Product = 'Laptop' AND Region = 'North';
++----+-------------+-------+------------+------+--------------------------+--------------------------+---------+-------------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys            | key                      | key_len | ref         | rows | filtered | Extra |
++----+-------------+-------+------------+------+--------------------------+--------------------------+---------+-------------+------+----------+-------+
+|  1 | SIMPLE      | Sales | NULL       | ref  | idx_sales_region_product | idx_sales_region_product | 406     | const,const |    2 |   100.00 | NULL  |
++----+-------------+-------+------------+------+--------------------------+--------------------------+---------+-------------+------+----------+-------+
+1 row in set, 1 warning (0.01 sec)
+
+mysql> CREATE INDEX idx_sales_amount ON Sales (Sales_Amount);
+Query OK, 0 rows affected (0.04 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql>
+mysql> SELECT Region, SUM(Sales_Amount)
+    -> FROM Sales
+    -> GROUP BY Region;
++--------+-------------------+
+| Region | SUM(Sales_Amount) |
++--------+-------------------+
+| North  |         163000.00 |
+| South  |         157000.00 |
++--------+-------------------+
+2 rows in set (0.00 sec)
+
+mysql> ALTER TABLE Sales
+    -> PARTITION BY RANGE (Year) (
+    ->     PARTITION p1 VALUES LESS THAN (2022),
+    ->     PARTITION p2 VALUES LESS THAN (2023),
+    ->     PARTITION p3 VALUES LESS THAN (2024)
+    -> );
+Query OK, 8 rows affected (0.13 sec)
+Records: 8  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM Sales WHERE Sales_Amount > (SELECT AVG(Sales_Amount) FROM Sales);
++---------+--------+------+--------------+
+| Product | Region | Year | Sales_Amount |
++---------+--------+------+--------------+
+| Laptop  | South  | 2022 |     45000.00 |
+| Laptop  | North  | 2022 |     50000.00 |
+| Laptop  | South  | 2023 |     47000.00 |
+| Laptop  | North  | 2023 |     52000.00 |
++---------+--------+------+--------------+
+4 rows in set (0.01 sec)
+
+mysql> SELECT s.*
+    -> FROM Sales s
+    -> JOIN (SELECT AVG(Sales_Amount) AS avg_sales FROM Sales) sub
+    -> ON s.Sales_Amount > sub.avg_sales;
++---------+--------+------+--------------+
+| Product | Region | Year | Sales_Amount |
++---------+--------+------+--------------+
+| Laptop  | South  | 2022 |     45000.00 |
+| Laptop  | North  | 2022 |     50000.00 |
+| Laptop  | South  | 2023 |     47000.00 |
+| Laptop  | North  | 2023 |     52000.00 |
++---------+--------+------+--------------+
+4 rows in set (0.00 sec)
+
+mysql> ALTER TABLE Sales
+    -> MODIFY COLUMN Sales_Amount DECIMAL(10,2);
+Query OK, 0 rows affected (0.03 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM Sales WHERE Region = 'North';
++---------+--------+------+--------------+
+| Product | Region | Year | Sales_Amount |
++---------+--------+------+--------------+
+| Laptop  | North  | 2022 |     50000.00 |
+| Phone   | North  | 2022 |     30000.00 |
+| Laptop  | North  | 2023 |     52000.00 |
+| Phone   | North  | 2023 |     31000.00 |
++---------+--------+------+--------------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT Product, Sales_Amount FROM Sales WHERE Region = 'North';
++---------+--------------+
+| Product | Sales_Amount |
++---------+--------------+
+| Laptop  |     50000.00 |
+| Phone   |     30000.00 |
+| Laptop  |     52000.00 |
+| Phone   |     31000.00 |
++---------+--------------+
+4 rows in set (0.00 sec)
+
+

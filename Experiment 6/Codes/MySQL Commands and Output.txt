@@ -1,0 +1,158 @@
+mysql> use RetailDataWarehouse
+Database changed
+mysql> show tables;
++-------------------------------+
+| Tables_in_retaildatawarehouse |
++-------------------------------+
+| city                          |
+| customer_dim                  |
+| customer_dim_normalized       |
+| product_category              |
+| product_dim                   |
+| product_dim_normalized        |
+| region                        |
+| sales_fact                    |
+| sales_fact_normalized         |
+| store_dim                     |
+| time_dim                      |
+| time_dim_normalized           |
++-------------------------------+
+12 rows in set (0.04 sec)
+
+mysql> CREATE TABLE Raw_Sales (
+    ->     ID INT,
+    ->     Product VARCHAR(50),
+    ->     Region VARCHAR(50),
+    ->     Sales_Amount VARCHAR(20),  -- Stored as text, needs conversion
+    ->     Date_Sold VARCHAR(20)      -- Inconsistent date format
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+mysql> INSERT INTO Raw_Sales VALUES
+    -> (1, 'Laptop', 'North', '50000', '2023-01-10'),
+    -> (2, 'Phone', 'South', '32000.00', '10/02/2023'),
+    -> (3, 'Laptop', 'East', NULL, '2023-03-15'), -- Missing Sales_Amount
+    -> (4, 'Tablet', NULL, '25000', '2023-04-05'), -- Missing Region
+    -> (5, 'Phone', 'West', 'invalid', '2023-05-20'); -- Invalid Sales_Amount
+Query OK, 5 rows affected (0.00 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> DELETE FROM Raw_Sales
+    -> WHERE ID NOT IN (
+    ->     SELECT MIN(ID) FROM Raw_Sales GROUP BY Product, Region, Date_Sold
+    -> );
+ERROR 1093 (HY000): You can't specify target table 'Raw_Sales' for update in FROM clause
+mysql> DELETE FROM Raw_Sales
+    -> WHERE ID NOT IN (
+    ->     SELECT MIN(ID) FROM Raw_Sales GROUP BY Product, Region, Date_Sold
+    -> );
+ERROR 1093 (HY000): You can't specify target table 'Raw_Sales' for update in FROM clause
+mysql> DELETE FROM Raw_Sales
+    -> WHERE ID NOT IN (
+    ->     SELECT * FROM (
+    ->         SELECT MIN(ID) FROM Raw_Sales GROUP BY Product, Region, Date_Sold
+    ->     ) AS temp_table
+    -> );
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> UPDATE Raw_Sales
+    -> SET Region = COALESCE(Region, 'Unknown'),
+    ->     Sales_Amount = COALESCE(Sales_Amount, '0');
+Query OK, 2 rows affected (0.01 sec)
+Rows matched: 5  Changed: 2  Warnings: 0
+
+mysql> UPDATE Raw_Sales
+    -> SET Sales_Amount =
+    ->     CASE
+    ->         WHEN Sales_Amount ~ '^[0-9]+(\.[0-9]+)?$' THEN Sales_Amount
+    ->         ELSE '0'
+    ->     END;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '~ '^[0-9]+(\.[0-9]+)?$' THEN Sales_Amount
+        ELSE '0'
+    END' at line 4
+mysql> ALTER TABLE Raw_Sales
+    -> ALTER COLUMN Sales_Amount TYPE DECIMAL(10,2)
+    -> USING Sales_Amount::DECIMAL;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'TYPE DECIMAL(10,2)
+USING Sales_Amount::DECIMAL' at line 2
+mysql> UPDATE Raw_Sales
+    -> SET Sales_Amount =
+    ->     CASE
+    ->         WHEN Sales_Amount REGEXP '^[0-9]+(\.[0-9]+)?$' THEN Sales_Amount
+    ->         ELSE '0'
+    ->     END;
+Query OK, 1 row affected (0.02 sec)
+Rows matched: 5  Changed: 1  Warnings: 0
+
+mysql> UPDATE Raw_Sales
+    -> SET Date_Sold =
+    ->     CASE
+    ->         WHEN Date_Sold LIKE '%/%' THEN TO_CHAR(TO_DATE(Date_Sold, 'DD/MM/YYYY'), 'YYYY-MM-DD')
+    ->         ELSE Date_Sold
+    ->     END;
+ERROR 1305 (42000): FUNCTION olap.TO_CHAR does not exist
+mysql> ALTER TABLE Raw_Sales
+    -> ALTER COLUMN Date_Sold TYPE DATE
+    -> USING Date_Sold::DATE;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'TYPE DATE
+USING Date_Sold::DATE' at line 2
+mysql> UPDATE Raw_Sales
+    -> SET Date_Sold = STR_TO_DATE(Date_Sold, '%d/%m/%Y')
+    -> WHERE Date_Sold LIKE '%/%';
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> ALTER TABLE Raw_Sales ADD COLUMN Year INT;
+Query OK, 0 rows affected (0.04 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> UPDATE Raw_Sales SET Year = EXTRACT(YEAR FROM Date_Sold);
+Query OK, 5 rows affected (0.00 sec)
+Rows matched: 5  Changed: 5  Warnings: 0
+
+mysql> ALTER TABLE Raw_Sales ADD COLUMN Category VARCHAR(20);
+Query OK, 0 rows affected (0.02 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> UPDATE Raw_Sales
+    -> SET Category =
+    ->     CASE
+    ->         WHEN Product IN ('Laptop', 'Tablet') THEN 'Computing'
+    ->         WHEN Product = 'Phone' THEN 'Mobile'
+    ->         ELSE 'Other'
+    ->     END;
+Query OK, 5 rows affected (0.00 sec)
+Rows matched: 5  Changed: 5  Warnings: 0
+
+mysql> UPDATE Raw_Sales
+    -> SET Region =
+    ->     CASE
+    ->         WHEN Region ILIKE 'north%' THEN 'North'
+    ->         WHEN Region ILIKE 'south%' THEN 'South'
+    ->         ELSE Region
+    ->     END;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ILIKE 'north%' THEN 'North'
+        WHEN Region ILIKE 'south%' THEN 'South'
+    ' at line 4
+mysql> UPDATE Raw_Sales
+    -> SET Region =
+    ->     CASE
+    ->         WHEN LOWER(Region) LIKE 'north%' THEN 'North'
+    ->         WHEN LOWER(Region) LIKE 'south%' THEN 'South'
+    ->         ELSE Region
+    ->     END;
+Query OK, 0 rows affected (0.01 sec)
+Rows matched: 5  Changed: 0  Warnings: 0
+
+mysql> SELECT * FROM Raw_Sales;
++------+---------+---------+--------------+------------+------+-----------+
+| ID   | Product | Region  | Sales_Amount | Date_Sold  | Year | Category  |
++------+---------+---------+--------------+------------+------+-----------+
+|    1 | Laptop  | North   | 50000        | 2023-01-10 | 2023 | Computing |
+|    2 | Phone   | South   | 32000.00     | 2023-02-10 | 2023 | Mobile    |
+|    3 | Laptop  | East    | 0            | 2023-03-15 | 2023 | Computing |
+|    4 | Tablet  | Unknown | 25000        | 2023-04-05 | 2023 | Computing |
+|    5 | Phone   | West    | 0            | 2023-05-20 | 2023 | Mobile    |
++------+---------+---------+--------------+------------+------+-----------+
+5 rows in set (0.00 sec)
