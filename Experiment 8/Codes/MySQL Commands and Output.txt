@@ -1,0 +1,153 @@
+mysql> show databases;
++---------------------+
+| Database            |
++---------------------+
+| classdb             |
+| company             |
+| employee            |
+| hospital            |
+| information_schema  |
+| movie               |
+| mydatabase          |
+| mysql               |
+| olap                |
+| performance_schema  |
+| retaildatawarehouse |
+| root                |
+| shopping            |
+| student             |
+| sys                 |
+| utd                 |
++---------------------+
+16 rows in set (0.03 sec)
+
+mysql> use company;
+Database changed
+mysql> show tables;
++-------------------+
+| Tables_in_company |
++-------------------+
+| department        |
+| dependent         |
+| dept_locations    |
+| employee_details  |
+| project           |
+| works_on          |
++-------------------+
+6 rows in set (0.01 sec)
+
+mysql> CREATE TABLE Sales (
+    ->     Product VARCHAR(50),
+    ->     Region VARCHAR(50),
+    ->     Year INT,
+    ->     Sales_Amount DECIMAL(10,2)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+mysql> INSERT INTO Sales VALUES
+    -> ('Laptop', 'North', 2022, 50000),
+    -> ('Laptop', 'South', 2022, 45000),
+    -> ('Phone', 'North', 2022, 30000),
+    -> ('Phone', 'South', 2022, 32000),
+    -> ('Laptop', 'North', 2023, 52000),
+    -> ('Laptop', 'South', 2023, 47000),
+    -> ('Phone', 'North', 2023, 31000),
+    -> ('Phone', 'South', 2023, 33000);
+Query OK, 8 rows affected (0.00 sec)
+Records: 8  Duplicates: 0  Warnings: 0
+
+mysql> SELECT SUM(Sales_Amount) AS Total_Sales FROM Sales;
++-------------+
+| Total_Sales |
++-------------+
+|   320000.00 |
++-------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT Product, AVG(Sales_Amount) AS Avg_Sales
+    -> FROM Sales
+    -> GROUP BY Product;
++---------+--------------+
+| Product | Avg_Sales    |
++---------+--------------+
+| Laptop  | 48500.000000 |
+| Phone   | 31500.000000 |
++---------+--------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT Region, COUNT(*) AS Sales_Count
+    -> FROM Sales
+    -> GROUP BY Region;
++--------+-------------+
+| Region | Sales_Count |
++--------+-------------+
+| North  |           4 |
+| South  |           4 |
++--------+-------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT Year, MAX(Sales_Amount) AS Max_Sales, MIN(Sales_Amount) AS Min_Sales
+    -> FROM Sales
+    -> GROUP BY Year;
++------+-----------+-----------+
+| Year | Max_Sales | Min_Sales |
++------+-----------+-----------+
+| 2022 |  50000.00 |  30000.00 |
+| 2023 |  52000.00 |  31000.00 |
++------+-----------+-----------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT Product, Region, SUM(Sales_Amount) AS Total_Sales
+    -> FROM Sales
+    -> GROUP BY GROUPING SETS ((Product), (Region), ());
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'SETS ((Product), (Region), ())' at line 3
+mysql> SELECT Product, NULL AS Region, SUM(Sales_Amount) AS Total_Sales
+    -> FROM Sales
+    -> GROUP BY Product
+    -> UNION ALL
+    -> SELECT NULL, Region, SUM(Sales_Amount) AS Total_Sales
+    -> FROM Sales
+    -> GROUP BY Region
+    -> UNION ALL
+    -> SELECT NULL, NULL, SUM(Sales_Amount) AS Total_Sales
+    -> FROM Sales;
++---------+--------+-------------+
+| Product | Region | Total_Sales |
++---------+--------+-------------+
+| Laptop  | NULL   |   194000.00 |
+| Phone   | NULL   |   126000.00 |
+| NULL    | North  |   163000.00 |
+| NULL    | South  |   157000.00 |
+| NULL    | NULL   |   320000.00 |
++---------+--------+-------------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT Region, Product, SUM(Sales_Amount) AS Total_Sales
+    -> FROM Sales
+    -> GROUP BY Region, Product WITH ROLLUP;
++--------+---------+-------------+
+| Region | Product | Total_Sales |
++--------+---------+-------------+
+| North  | Laptop  |   102000.00 |
+| North  | Phone   |    61000.00 |
+| North  | NULL    |   163000.00 |
+| South  | Laptop  |    92000.00 |
+| South  | Phone   |    65000.00 |
+| South  | NULL    |   157000.00 |
+| NULL   | NULL    |   320000.00 |
++--------+---------+-------------+
+7 rows in set (0.00 sec)
+
+mysql> SELECT Product,
+    ->        SUM(CASE WHEN Year = 2022 THEN Sales_Amount ELSE 0 END) AS Sales_2022,
+    ->        SUM(CASE WHEN Year = 2023 THEN Sales_Amount ELSE 0 END) AS Sales_2023
+    -> FROM Sales
+    -> GROUP BY Product;
++---------+------------+------------+
+| Product | Sales_2022 | Sales_2023 |
++---------+------------+------------+
+| Laptop  |   95000.00 |   99000.00 |
+| Phone   |   62000.00 |   64000.00 |
++---------+------------+------------+
+2 rows in set (0.00 sec)
