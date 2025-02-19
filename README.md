@@ -43,11 +43,6 @@ This repository contains practical examples of data warehousing concepts, includ
     <img src="https://img.shields.io/github/contributors/madhurimarawat/Data-Warehousing?color=%232A9D8F&label=Contributors&labelColor=%231C6A61&style=for-the-badge&logo=github" alt="GitHub Contributors">
   </a>
 
-  <!-- Language Breakdown -->
-  <a href="https://github.com/madhurimarawat/Data-Warehousing">
-    <img src="https://img.shields.io/github/languages/top/madhurimarawat/Data-Warehousing?color=%23D9E5F0&label=Top%20Language&labelColor=%23A3C8E8&style=for-the-badge&logo=python" alt="Top Language">
-  </a>
-
   <!-- License -->
   <a href="https://github.com/madhurimarawat/Data-Warehousing/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/madhurimarawat/Data-Warehousing?color=%23FF6B8B&label=License&labelColor=%23E65F73&style=for-the-badge&logo=open-source-initiative" alt="License">
