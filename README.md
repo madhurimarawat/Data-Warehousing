@@ -136,23 +136,39 @@ Contains the source code files used for data processing and analysis in each exp
 
 ## Table Of Contents 📔 🔖 📑
 
-### 1. [Introduction to Data Warehousing Concepts](https://github.com/madhurimarawat/Data-Warehousing/tree/main/Experiment%201)
+### 1. [Introduction to Data Warehousing Concepts](Experiment%201)
 
 This experiment introduces the fundamental concepts and architecture of data warehousing, including ETL processes, data modeling techniques, and OLAP functionalities.  
 
-### 2. [Creating Star Schema in Data Warehouse](https://github.com/madhurimarawat/Data-Warehousing/tree/main/Experiment%202)
+### 2. [Creating Star Schema in Data Warehouse](Experiment%202)
 
 This experiment focuses on designing and implementing a star schema data model for a specified business scenario, emphasizing the creation of fact and dimension tables. 
 
-### 3. [Implementing Snowflake Schema in Data Warehouse](https://github.com/madhurimarawat/Data-Warehousing/tree/main/Experiment%203)
+### 3. [Implementing Snowflake Schema in Data Warehouse](Experiment%203)
 
 In this experiment, the Snowflake Schema was implemented to achieve a more 
 normalized data structure than the Star Schema.  
 
-### 4. [Designing ETL Process for Data Warehousing](https://github.com/madhurimarawat/Data-Warehousing/tree/main/Experiment%204)
+### 4. [Designing ETL Process for Data Warehousing](Experiment%204)
 
 In this experiment, an ETL process was designed and implemented to migrate 
 data from operational databases to a data warehouse.
+
+### 5. [OLAP Operations in Data Warehousing](Experiment%205)  
+
+In this experiment, OLAP operations such as **slicing, dicing, drill-down, drill-up, and pivoting** were applied to analyze predefined data in a data warehouse.  
+
+### 6. [Data Cleansing and Transformation](Experiment%206)  
+
+This experiment involved **cleaning and transforming raw data** before loading it into the data warehouse, ensuring **consistency, accuracy, and completeness**.  
+
+### 7. [Query Optimization in Data Warehousing](Experiment%207)  
+
+SQL queries were **optimized for large-scale data warehouse applications** using techniques like **indexing, partitioning, and query tuning** to improve performance.  
+
+### 8. [Data Aggregation for Reporting](Experiment%208)  
+
+This experiment implemented **data aggregation techniques** to generate **summarized views of large datasets**, enhancing **reporting and analytical efficiency**.
 
 ---
 
