@@ -219,7 +219,7 @@ This confirms that all records were successfully added.
 
 ---
 
-### **Step 4: Query Sales Data for a Specific Region**
+### **Step 4: Query Sales Data for a Specific Region** Drill-Down (Increasing Detail)
 
 #### **Input:**
 
@@ -230,6 +230,20 @@ SELECT * FROM Sales WHERE Region = 'North';
 #### **Command Breakdown:**
 
 - Fetches all sales records where the `Region` is "North".
+
+#### **OLAP Operation: Slice**
+
+- **Explanation:** This query applies a filter (`WHERE Region = 'North'`), reducing the dataset to a subset based on a single dimension (Region).
+- **Slice Definition:** A **slice** selects a single dimension value (or category) while keeping other dimensions unchanged.
+
+#### **Operation:**
+
+- We start with all sales data.
+- Then, we focus only on the "North" region.
+- This increases detail by filtering the dataset.
+
+📌 **Drill-down Example:**  
+From **"Total Sales"** → to **"Sales in North"** (more specific view).
 
 #### **Output:**
 
@@ -252,7 +266,7 @@ SELECT * FROM Sales WHERE Region = 'North';
 
 ---
 
-### **Step 5: Query Specific Sales Data**
+### **Step 5: Query Specific Sales Data** Drill-Up (Decreasing Detail)
 
 #### **Input:**
 
@@ -267,6 +281,19 @@ WHERE Region = 'North' AND Year = 2022 AND Product = 'Laptop';
   - **Region** = North
   - **Year** = 2022
   - **Product** = Laptop
+
+#### **OLAP Operation: Dice**
+
+- **Explanation:** This query applies multiple filters across different dimensions (`Region`, `Year`, and `Product`).
+- **Dice Definition:** A **dice** operation selects a subcube by filtering multiple dimensions simultaneously.
+
+#### **Operation:**
+
+- Instead of showing individual records, we **aggregate sales by year**.
+- We move from **detailed transactional data** to a **higher-level summary**.
+
+📌 **Drill-up Example:**  
+From **"Sales per Product and Region"** → to **"Total Sales per Year"** (less specific view).
 
 #### **Output:**
 
@@ -285,7 +312,7 @@ WHERE Region = 'North' AND Year = 2022 AND Product = 'Laptop';
 
 ---
 
-### **Step 6: Aggregate Sales Data by Year**
+### **Step 6: Aggregate Sales Data by Year** Slice (Filtering One Dimension)
 
 #### **Input:**
 
@@ -299,6 +326,19 @@ GROUP BY Year;
 
 - Groups data by `Year`.
 - Uses `SUM(Sales_Amount)` to calculate total sales for each year.
+
+#### **OLAP Operation: Roll-Up**
+
+- **Explanation:** This aggregates data by summarizing `Sales_Amount` at a higher level (`Year`).
+- **Roll-Up Definition:** A **roll-up** operation moves data from a more detailed level (individual sales records) to a summarized level (total yearly sales).
+
+#### **Operation:**
+
+- We filter the dataset to show only **laptop sales in North in 2022**.
+- This removes all other dimensions except the selected one.
+
+📌 **Slice Example:**  
+From **"All Sales Data"** → to **"Laptop Sales in North in 2022"** (isolating one dimension).
 
 #### **Output:**
 
@@ -318,7 +358,7 @@ GROUP BY Year;
 
 ---
 
-### **Step 7: Aggregate Sales by Year and Product**
+### **Step 7: Aggregate Sales by Year and Product** Dice (Filtering Multiple Dimensions)
 
 #### **Input:**
 
@@ -332,6 +372,19 @@ GROUP BY Year, Product;
 
 - Groups sales data by both `Year` and `Product`.
 - Uses `SUM(Sales_Amount)` to find total revenue per product each year.
+
+#### **OLAP Operation: Roll-Up**
+
+- **Explanation:** This query summarizes sales per `Year` and `Product`, rolling up from individual records to a grouped level.
+- **Roll-Up Definition:** Aggregates data into a higher level (Product-Year summary).
+
+#### **Operation:**
+
+- We filter by **Year** and **Product**, summarizing the dataset.
+- Instead of all data, we only get aggregated values for each product and year.
+
+📌 **Dice Example:**  
+From **"All Sales Data"** → to **"Total Sales per Year & Product"** (multidimensional filtering).
 
 #### **Output:**
 
@@ -353,7 +406,7 @@ GROUP BY Year, Product;
 
 ---
 
-### **Step 8: Compare Sales Across Years**
+### **Step 8: Compare Sales Across Years** Pivot (Rearranging Data for Comparison)
 
 #### **Input:**
 
@@ -369,6 +422,19 @@ GROUP BY Product;
 
 - Uses `CASE` statements to conditionally sum sales amounts for each year.
 - Groups data by `Product`.
+
+#### **OLAP Operation: Pivot**
+
+- **Explanation:** This query reorganizes data, converting the `Year` values into columns (`Sales_2022` and `Sales_2023`).
+- **Pivot Definition:** A **pivot** operation rotates data, transforming row values into column headers for easier comparison.
+
+#### **Operation:**
+
+- Converts **years into columns** for better visualization.
+- Allows easy comparison of **sales per product across different years**.
+
+📌 **Pivot Example:**  
+From **"Year-wise Sales in Rows"** → to **"Sales per Year in Columns"** (better for analysis).
 
 #### **Output:**
 
@@ -386,6 +452,26 @@ GROUP BY Product;
 - Laptops sales increased from **95,000** in **2022** to **99,000** in **2023**.
 - Phone sales increased from **62,000** to **64,000** in the same period.
 - Useful for understanding product growth trends across different years.
+
+### **Summary of OLAP Operations:**
+
+| Query                                                                                                                                                                                       | OLAP Operation | Explanation                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | --------------------------------------------------------- |
+| `SELECT * FROM Sales WHERE Region = 'North';`                                                                                                                                               | **Slice**      | Filters data based on a single dimension (Region).        |
+| `SELECT * FROM Sales WHERE Region = 'North' AND Year = 2022 AND Product = 'Laptop';`                                                                                                        | **Dice**       | Filters data based on multiple dimensions.                |
+| `SELECT Year, SUM(Sales_Amount) FROM Sales GROUP BY Year;`                                                                                                                                  | **Roll-Up**    | Aggregates data at a higher level (Year).                 |
+| `SELECT Year, Product, SUM(Sales_Amount) FROM Sales GROUP BY Year, Product;`                                                                                                                | **Roll-Up**    | Aggregates data at a higher level (Product-Year).         |
+| `SELECT Product, SUM(CASE WHEN Year = 2022 THEN Sales_Amount ELSE 0 END) AS Sales_2022, SUM(CASE WHEN Year = 2023 THEN Sales_Amount ELSE 0 END) AS Sales_2023 FROM Sales GROUP BY Product;` | **Pivot**      | Converts row values (`Year`) into columns for comparison. |
+
+### **Summary of OLAP Operations Used in Queries**
+
+| **OLAP Operation** | **Query Functionality**                                                                 |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| **Drill-Down**     | Filtering data to see **more details** (e.g., focusing on a region, product, or year).  |
+| **Drill-Up**       | Aggregating data to see **higher-level summaries** (e.g., total sales per year).        |
+| **Slice**          | Filtering on a **single dimension** (e.g., sales in North for 2022).                    |
+| **Dice**           | Filtering on **multiple dimensions** (e.g., sales per year and product).                |
+| **Pivot**          | Reshaping data for **better comparison** (e.g., year-wise sales comparison in columns). |
 
 ---
 
