@@ -311,9 +311,9 @@ This reveals the **highest and lowest sales values for 2022 and 2023**.
 
 ---
 
-### **Step 7: Sales Aggregation with UNION ALL**
+### **Step 7: Sales Aggregation with `UNION ALL`**
 
-#### **Input:**
+#### **SQL Query:**
 
 ```sql
 SELECT Product, NULL AS Region, SUM(Sales_Amount) AS Total_Sales
@@ -328,14 +328,95 @@ SELECT NULL, NULL, SUM(Sales_Amount) AS Total_Sales
 FROM Sales;
 ```
 
-#### **Command Breakdown:**
+---
 
-- Uses `UNION ALL` to **simulate GROUPING SETS**, aggregating sales at different levels:
-  - **By Product**
-  - **By Region**
-  - **Overall Total Sales**
+#### **Explanation:**
 
-#### **Output:**
+This query is **manually simulating the `GROUPING SETS` feature**, which is available in some databases but not in MySQL.
+
+👉 **How does this work?**
+
+- We perform **three separate `GROUP BY` queries**:
+  1. **First query:** Aggregates sales **by Product**.
+  2. **Second query:** Aggregates sales **by Region**.
+  3. **Third query:** Computes the **overall total sales**.
+- These results are **combined** using `UNION ALL` to create a single result set.
+
+---
+
+### **Breaking Down the Query:**
+
+#### 🔹 **First Query (Total Sales per Product)**
+
+```sql
+SELECT Product, NULL AS Region, SUM(Sales_Amount) AS Total_Sales
+FROM Sales
+GROUP BY Product
+```
+
+✅ **Output Example:**
+
+```
++---------+--------+-------------+
+| Product | Region | Total_Sales |
++---------+--------+-------------+
+| Laptop  | NULL   |   194000.00 |
+| Phone   | NULL   |   126000.00 |
++---------+--------+-------------+
+```
+
+📌 **Why `NULL AS Region`?**  
+We don't need the **Region** column for this part of the query, so we **fill it with NULL**.
+
+---
+
+#### 🔹 **Second Query (Total Sales per Region)**
+
+```sql
+SELECT NULL, Region, SUM(Sales_Amount) AS Total_Sales
+FROM Sales
+GROUP BY Region
+```
+
+✅ **Output Example:**
+
+```
++---------+--------+-------------+
+| Product | Region | Total_Sales |
++---------+--------+-------------+
+| NULL    | North  |   163000.00 |
+| NULL    | South  |   157000.00 |
++---------+--------+-------------+
+```
+
+📌 **Why `NULL AS Product`?**  
+Since we are grouping **by Region**, the **Product column is irrelevant** here, so we set it to NULL.
+
+---
+
+#### 🔹 **Third Query (Total Sales Overall)**
+
+```sql
+SELECT NULL, NULL, SUM(Sales_Amount) AS Total_Sales
+FROM Sales;
+```
+
+✅ **Output Example:**
+
+```
++---------+--------+-------------+
+| Product | Region | Total_Sales |
++---------+--------+-------------+
+| NULL    | NULL   |   320000.00 |
++---------+--------+-------------+
+```
+
+📌 **What does this do?**  
+It **calculates the grand total of all sales**, without any grouping.
+
+---
+
+### **Final Combined Output (Using `UNION ALL`)**
 
 ```
 +---------+--------+-------------+
@@ -347,16 +428,19 @@ FROM Sales;
 | NULL    | South  |   157000.00 |
 | NULL    | NULL   |   320000.00 |
 +---------+--------+-------------+
-5 rows in set (0.00 sec)
 ```
 
-This provides total sales **per product, per region, and overall**.
+✔ **Summary of Each Row:**
+
+1. **Total sales for each product** (`Laptop`, `Phone`).
+2. **Total sales for each region** (`North`, `South`).
+3. **Overall total sales** (final row).
 
 ---
 
-### **Step 8: Sales Aggregation with ROLLUP**
+### **Step 8: Sales Aggregation with `ROLLUP`**
 
-#### **Input:**
+#### **SQL Query:**
 
 ```sql
 SELECT Region, Product, SUM(Sales_Amount) AS Total_Sales
@@ -364,11 +448,25 @@ FROM Sales
 GROUP BY Region, Product WITH ROLLUP;
 ```
 
-#### **Command Breakdown:**
+---
 
-- `WITH ROLLUP` → Provides **subtotal calculations per region** and **grand total**.
+#### **Explanation:**
 
-#### **Output:**
+- `WITH ROLLUP` is an **automatic way to calculate subtotals and grand totals** in MySQL.
+- Instead of writing **multiple queries with `UNION ALL`**, `ROLLUP` handles everything in one step.
+
+---
+
+### **How `WITH ROLLUP` Works:**
+
+- It **groups the data** at multiple levels:
+  1. **Total sales per region and product.**
+  2. **Subtotal per region (NULL in `Product` column).**
+  3. **Grand total of all sales (NULL in both columns).**
+
+---
+
+### **Breaking Down the Output:**
 
 ```
 +--------+---------+-------------+
@@ -376,16 +474,54 @@ GROUP BY Region, Product WITH ROLLUP;
 +--------+---------+-------------+
 | North  | Laptop  |   102000.00 |
 | North  | Phone   |    61000.00 |
-| North  | NULL    |   163000.00 |
+| North  | NULL    |   163000.00 | <-- (Subtotal for North)
 | South  | Laptop  |    92000.00 |
 | South  | Phone   |    65000.00 |
-| South  | NULL    |   157000.00 |
-| NULL   | NULL    |   320000.00 |
+| South  | NULL    |   157000.00 | <-- (Subtotal for South)
+| NULL   | NULL    |   320000.00 | <-- (Grand total)
 +--------+---------+-------------+
-7 rows in set (0.00 sec)
 ```
 
-This provides **subtotal sales per region and product**, along with the **grand total**.
+✔ **Row Analysis:**
+
+1. **Regular rows:** `Region` and `Product` are filled (specific product sales per region).
+2. **Subtotal rows:** `Product` is `NULL` → Shows total sales per region.
+3. **Grand Total row:** Both `Region` and `Product` are `NULL` → Shows total for all sales.
+
+---
+
+### **Key Differences Between `UNION ALL` and `ROLLUP`**
+
+| Feature                  | `UNION ALL`                                | `WITH ROLLUP`                                 |
+| ------------------------ | ------------------------------------------ | --------------------------------------------- |
+| **Manual or Automatic?** | **Manual** (multiple queries combined)     | **Automatic** (one query)                     |
+| **Flexibility**          | Can create **custom aggregations**         | Follows a **fixed hierarchy**                 |
+| **Performance**          | **Less efficient** (runs multiple queries) | **More efficient** (single query)             |
+| **Complexity**           | Requires explicit `NULL` handling          | Automatically fills `NULL` values             |
+| **Grouping Levels**      | Custom levels (product, region, total)     | Fixed hierarchy (from more detail to summary) |
+
+---
+
+### **Which One Should You Use?**
+
+- ✅ **Use `ROLLUP` if you want automatic subtotals & grand totals.**
+- ✅ **Use `UNION ALL` if you need more flexibility in grouping.**
+
+📌 **Example Use Cases:**
+
+- **`WITH ROLLUP` is great for reports** where you need **subtotals and grand totals**.
+- **`UNION ALL` is useful** if you need **custom grouping logic** that `ROLLUP` can't handle.
+
+---
+
+### **Final Summary**
+
+| Query                         | Purpose                                                               |
+| ----------------------------- | --------------------------------------------------------------------- |
+| **`UNION ALL` Aggregation**   | Manually groups data at **multiple levels** (Product, Region, Total). |
+| **`WITH ROLLUP` Aggregation** | Automatically calculates **subtotals and grand total** in one query.  |
+
+Both methods achieve **multi-level aggregation**, but **`ROLLUP` is more efficient and easier to use** in MySQL. 🚀
 
 #### **Final Summary**
 
