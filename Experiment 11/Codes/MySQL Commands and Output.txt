@@ -1,0 +1,325 @@
+mysql> show databases;
++---------------------+
+| Database            |
++---------------------+
+| classdb             |
+| company             |
+| employee            |
+| hospital            |
+| information_schema  |
+| linkedin_data       |
+| movie               |
+| mydatabase          |
+| mysql               |
+| olap                |
+| performance_schema  |
+| retaildatawarehouse |
+| root                |
+| shopping            |
+| streaming_warehouse |
+| student             |
+| sys                 |
+| utd                 |
++---------------------+
+18 rows in set (0.01 sec)
+
+mysql> use company;
+Database changed
+
+mysql> show tables;
++-------------------+
+| Tables_in_company |
++-------------------+
+| department        |
+| dependent         |
+| dept_locations    |
+| employee_details  |
+| project           |
+| sales             |
+| works_on          |
++-------------------+
+7 rows in set (0.00 sec)
+
+mysql> DROP TABLE IF EXISTS original_table;
+Query OK, 0 rows affected, 1 warning (0.02 sec)
+
+mysql> CREATE TABLE original_table (
+    ->     id INT PRIMARY KEY,
+    ->     name VARCHAR(50),
+    ->     city VARCHAR(50),
+    ->     version INT DEFAULT 1 -- version for scd6
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> INSERT INTO original_table (id, name, city)
+    -> VALUES
+    -> (1, 'John Doe', 'New York'),
+    -> (2, 'Jane Smith', 'Los Angeles'),
+    -> (3, 'Alice Brown', 'Chicago');
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE scd_0 AS SELECT * FROM original_table;
+Query OK, 3 rows affected (0.02 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE scd_1 AS SELECT * FROM original_table;
+Query OK, 3 rows affected (0.02 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE scd_2 (
+    ->     surrogate_key INT AUTO_INCREMENT PRIMARY KEY,
+    ->     id INT,
+    ->     name VARCHAR(50),
+    ->     city VARCHAR(50),
+    ->     start_date DATE,
+    ->     end_date DATE,
+    ->     current_flag CHAR(1)
+    -> );
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> INSERT INTO scd_2 (id, name, city, start_date, end_date, current_flag)
+    -> SELECT id, name, city, CURDATE(), NULL, 'Y' FROM original_table;
+Query OK, 3 rows affected (0.00 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE scd_3 (
+    ->     id INT PRIMARY KEY,
+    ->     name VARCHAR(50),
+    ->     city VARCHAR(50),
+    ->     prev_city VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> INSERT INTO scd_3 (id, name, city, prev_city)
+    -> SELECT id, name, city, NULL FROM original_table;
+Query OK, 3 rows affected (0.00 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE scd_4_current AS SELECT * FROM original_table;
+Query OK, 3 rows affected (0.02 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE scd_4_history (
+    ->     history_id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     id INT,
+    ->     name VARCHAR(50),
+    ->     city VARCHAR(50),
+    ->     change_date DATE
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> CREATE TABLE scd_6 (
+    ->     surrogate_key INT AUTO_INCREMENT PRIMARY KEY,
+    ->     id INT,
+    ->     name VARCHAR(50),
+    ->     city VARCHAR(50),
+    ->     prev_city VARCHAR(50),
+    ->     start_date DATE,
+    ->     end_date DATE,
+    ->     current_flag CHAR(1),
+    ->     version INT
+    -> );
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> INSERT INTO scd_6 (id, name, city, prev_city, start_date, end_date, current_flag, version)
+    -> SELECT id, name, city, NULL, CURDATE(), NULL, 'Y', 1 FROM original_table;
+Query OK, 3 rows affected (0.00 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> -- No updates performed on scd_0
+
+mysql> SELECT 'ORIGINAL TABLE' AS table_name, id, name, city FROM original_table;
++----------------+----+-------------+-------------+
+| table_name     | id | name        | city        |
++----------------+----+-------------+-------------+
+| ORIGINAL TABLE |  1 | John Doe    | New York    |
+| ORIGINAL TABLE |  2 | Jane Smith  | Los Angeles |
+| ORIGINAL TABLE |  3 | Alice Brown | Chicago     |
++----------------+----+-------------+-------------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT 'SCD_0 TABLE' AS table_name, id, name, city FROM scd_0;
++-------------+----+-------------+-------------+
+| table_name  | id | name        | city        |
++-------------+----+-------------+-------------+
+| SCD_0 TABLE |  1 | John Doe    | New York    |
+| SCD_0 TABLE |  2 | Jane Smith  | Los Angeles |
+| SCD_0 TABLE |  3 | Alice Brown | Chicago     |
++-------------+----+-------------+-------------+
+3 rows in set (0.00 sec)
+
+mysql> UPDATE scd_1
+    -> SET city = 'San Francisco'
+    -> WHERE id = 1;
+Query OK, 0 rows affected (0.00 sec)
+Rows matched: 1  Changed: 0  Warnings: 0
+
+mysql> SELECT 'ORIGINAL TABLE' AS table_name, id, name, city FROM original_table;
++----------------+----+-------------+-------------+
+| table_name     | id | name        | city        |
++----------------+----+-------------+-------------+
+| ORIGINAL TABLE |  1 | John Doe    | New York    |
+| ORIGINAL TABLE |  2 | Jane Smith  | Los Angeles |
+| ORIGINAL TABLE |  3 | Alice Brown | Chicago     |
++----------------+----+-------------+-------------+
+3 rows in set (0.00 sec)
+
+mysql>
+mysql> SELECT 'SCD_1 TABLE' AS table_name, id, name, city FROM scd_1;
++-------------+----+-------------+---------------+
+| table_name  | id | name        | city          |
++-------------+----+-------------+---------------+
+| SCD_1 TABLE |  1 | John Doe    | San Francisco |
+| SCD_1 TABLE |  2 | Jane Smith  | Los Angeles   |
+| SCD_1 TABLE |  3 | Alice Brown | Chicago       |
++-------------+----+-------------+---------------+
+3 rows in set (0.00 sec)
+
+mysql> -- Expire current record
+mysql> UPDATE scd_2
+    -> SET end_date = CURDATE(), current_flag = 'N'
+    -> WHERE id = 2 AND current_flag = 'Y';
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql>
+mysql> -- Insert new record with updated city
+mysql> INSERT INTO scd_2 (id, name, city, start_date, end_date, current_flag)
+    -> VALUES (2, 'Jane Smith', 'Houston', CURDATE(), NULL, 'Y');
+Query OK, 1 row affected (0.00 sec)
+
+mysql>
+mysql> SELECT 'ORIGINAL TABLE' AS table_name, id, name, city FROM original_table;
++----------------+----+-------------+-------------+
+| table_name     | id | name        | city        |
++----------------+----+-------------+-------------+
+| ORIGINAL TABLE |  1 | John Doe    | New York    |
+| ORIGINAL TABLE |  2 | Jane Smith  | Los Angeles |
+| ORIGINAL TABLE |  3 | Alice Brown | Chicago     |
++----------------+----+-------------+-------------+
+3 rows in set (0.00 sec)
+
+mysql>
+mysql> SELECT 'SCD_2 TABLE' AS table_name, id, name, city, start_date, end_date, current_flag FROM scd_2;
++-------------+------+-------------+-------------+------------+------------+--------------+
+| table_name  | id   | name        | city        | start_date | end_date   | current_flag |
++-------------+------+-------------+-------------+------------+------------+--------------+
+| SCD_2 TABLE |    1 | John Doe    | New York    | 2025-03-10 | NULL       | Y            |
+| SCD_2 TABLE |    2 | Jane Smith  | Los Angeles | 2025-03-10 | 2025-03-10 | N            |
+| SCD_2 TABLE |    3 | Alice Brown | Chicago     | 2025-03-10 | NULL       | Y            |
+| SCD_2 TABLE |    2 | Jane Smith  | Houston     | 2025-03-10 | NULL       | Y            |
++-------------+------+-------------+-------------+------------+------------+--------------+
+4 rows in set (0.00 sec)
+
+mysql> UPDATE scd_3
+    -> SET prev_city = city,
+    ->     city = 'Miami'
+    -> WHERE id = 3;
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql>
+mysql> SELECT 'ORIGINAL TABLE' AS table_name, id, name, city FROM original_table;
++----------------+----+-------------+-------------+
+| table_name     | id | name        | city        |
++----------------+----+-------------+-------------+
+| ORIGINAL TABLE |  1 | John Doe    | New York    |
+| ORIGINAL TABLE |  2 | Jane Smith  | Los Angeles |
+| ORIGINAL TABLE |  3 | Alice Brown | Chicago     |
++----------------+----+-------------+-------------+
+3 rows in set (0.00 sec)
+
+mysql>
+mysql> SELECT 'SCD_3 TABLE' AS table_name, id, name, city, prev_city FROM scd_3;
++-------------+----+-------------+-------------+-----------+
+| table_name  | id | name        | city        | prev_city |
++-------------+----+-------------+-------------+-----------+
+| SCD_3 TABLE |  1 | John Doe    | New York    | NULL      |
+| SCD_3 TABLE |  2 | Jane Smith  | Los Angeles | NULL      |
+| SCD_3 TABLE |  3 | Alice Brown | Miami       | Chicago   |
++-------------+----+-------------+-------------+-----------+
+3 rows in set (0.00 sec)
+
+mysql> -- Insert old data into history table
+mysql> INSERT INTO scd_4_history (id, name, city, change_date)
+    -> SELECT id, name, city, CURDATE() FROM scd_4_current WHERE id = 1;
+Query OK, 1 row affected (0.01 sec)
+Records: 1  Duplicates: 0  Warnings: 0
+
+mysql>
+mysql> -- Update current table
+mysql> UPDATE scd_4_current
+    -> SET city = 'Seattle'
+    -> WHERE id = 1;
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql>
+mysql> SELECT 'ORIGINAL TABLE' AS table_name, id, name, city FROM original_table;
++----------------+----+-------------+-------------+
+| table_name     | id | name        | city        |
++----------------+----+-------------+-------------+
+| ORIGINAL TABLE |  1 | John Doe    | New York    |
+| ORIGINAL TABLE |  2 | Jane Smith  | Los Angeles |
+| ORIGINAL TABLE |  3 | Alice Brown | Chicago     |
++----------------+----+-------------+-------------+
+3 rows in set (0.00 sec)
+
+mysql>
+mysql> SELECT 'SCD_4_CURRENT TABLE' AS table_name, id, name, city FROM scd_4_current;
++---------------------+----+-------------+-------------+
+| table_name          | id | name        | city        |
++---------------------+----+-------------+-------------+
+| SCD_4_CURRENT TABLE |  1 | John Doe    | Seattle     |
+| SCD_4_CURRENT TABLE |  2 | Jane Smith  | Los Angeles |
+| SCD_4_CURRENT TABLE |  3 | Alice Brown | Chicago     |
++---------------------+----+-------------+-------------+
+3 rows in set (0.00 sec)
+
+mysql>
+mysql> SELECT 'SCD_4_HISTORY TABLE' AS table_name, id, name, city, change_date FROM scd_4_history;
++---------------------+------+----------+----------+-------------+
+| table_name          | id   | name     | city     | change_date |
++---------------------+------+----------+----------+-------------+
+| SCD_4_HISTORY TABLE |    1 | John Doe | New York | 2025-03-10  |
++---------------------+------+----------+----------+-------------+
+1 row in set (0.00 sec)
+
+mysql> -- Expire current record
+mysql> UPDATE scd_6
+    -> SET end_date = CURDATE(), current_flag = 'N'
+    -> WHERE id = 2 AND current_flag = 'Y';
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql>
+mysql> -- Insert new record with updated city and previous city
+mysql> INSERT INTO scd_6 (id, name, city, prev_city, start_date, end_date, current_flag, version)
+    -> VALUES (2, 'Jane Smith', 'Boston', 'Houston', CURDATE(), NULL, 'Y', 2);
+Query OK, 1 row affected (0.00 sec)
+
+mysql>
+mysql> SELECT 'ORIGINAL TABLE' AS table_name, id, name, city FROM original_table;
++----------------+----+-------------+-------------+
+| table_name     | id | name        | city        |
++----------------+----+-------------+-------------+
+| ORIGINAL TABLE |  1 | John Doe    | New York    |
+| ORIGINAL TABLE |  2 | Jane Smith  | Los Angeles |
+| ORIGINAL TABLE |  3 | Alice Brown | Chicago     |
++----------------+----+-------------+-------------+
+3 rows in set (0.00 sec)
+
+mysql>
+mysql> SELECT 'SCD_6 TABLE' AS table_name, id, name, city, prev_city, start_date, end_date, current_flag, version FROM scd_6;
++-------------+------+-------------+-------------+-----------+------------+------------+--------------+---------+
+| table_name  | id   | name        | city        | prev_city | start_date | end_date   | current_flag | version |
++-------------+------+-------------+-------------+-----------+------------+------------+--------------+---------+
+| SCD_6 TABLE |    1 | John Doe    | New York    | NULL      | 2025-03-10 | NULL       | Y            |       1 |
+| SCD_6 TABLE |    2 | Jane Smith  | Los Angeles | NULL      | 2025-03-10 | 2025-03-10 | N            |       1 |
+| SCD_6 TABLE |    3 | Alice Brown | Chicago     | NULL      | 2025-03-10 | NULL       | Y            |       1 |
+| SCD_6 TABLE |    2 | Jane Smith  | Boston      | Houston   | 2025-03-10 | NULL       | Y            |       2 |
++-------------+------+-------------+-------------+-----------+------------+------------+--------------+---------+
+4 rows in set (0.00 sec)
+
+mysql>

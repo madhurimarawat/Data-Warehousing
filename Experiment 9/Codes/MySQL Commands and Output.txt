@@ -1,0 +1,117 @@
+mysql> -- Create the database and table
+mysql> CREATE DATABASE linkedin_data;
+Query OK, 1 row affected (0.05 sec)
+
+mysql> USE linkedin_data;
+Database changed
+mysql>
+mysql> CREATE TABLE users (
+    ->     id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     name VARCHAR(255),
+    ->     followers INT,
+    ->     content_type VARCHAR(100),
+    ->     gender VARCHAR(10),
+    ->     age INT,
+    ->     organization VARCHAR(255)
+    -> );
+Query OK, 0 rows affected (0.05 sec)
+
+mysql>
+mysql> -- Sample Query to Retrieve Insights
+mysql> SELECT
+    ->     content_type,
+    ->     AVG(followers) AS avg_followers,
+    ->     COUNT(*) AS total_users
+    -> FROM users
+    -> GROUP BY content_type;
+Empty set (0.02 sec)
+
+mysql> SELECT USER();
++----------------+
+| USER()         |
++----------------+
+| username@localhost |
++----------------+
+1 row in set (0.00 sec)
+
+mysql> SHOW DATABASES;
++---------------------+
+| Database            |
++---------------------+
+| classdb             |
+| company             |
+| employee            |
+| hospital            |
+| information_schema  |
+| linkedin_data       |
+| movie               |
+| mydatabase          |
+| mysql               |
+| olap                |
+| performance_schema  |
+| retaildatawarehouse |
+| username                |
+| shopping            |
+| student             |
+| sys                 |
+| utd                 |
++---------------------+
+17 rows in set (0.07 sec)
+
+mysql> USE linkedin_data;
+Database changed
+mysql> SHOW TABLES;
++-------------------------+
+| Tables_in_linkedin_data |
++-------------------------+
+| users                   |
++-------------------------+
+1 row in set (0.03 sec)
+
+mysql> GRANT ALL PRIVILEGES ON linkedin_data.* TO 'username'@'localhost';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> FLUSH PRIVILEGES;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> SHOW VARIABLES LIKE 'port';
++---------------+-------+
+| Variable_name | Value |
++---------------+-------+
+| port          | 3305  |
++---------------+-------+
+1 row in set (0.03 sec)
+
+mysql> ALTER USER 'username'@'localhost' IDENTIFIED WITH mysql_native_password BY 'your_password';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> FLUSH PRIVILEGES;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> INSERT INTO users (name, followers, content_type, gender, age, organization) VALUES
+    -> ('Alice Johnson', 8500, 'Blog', 'Female', 28, 'Google'),
+    -> ('Bob Smith', 4300, 'Video', 'Male', 35, 'Microsoft'),
+    -> ('Charlie Brown', 9200, 'Article', 'Male', 41, 'Amazon'),
+    -> ('David Lee', 1200, 'Post', 'Male', 24, 'Meta'),
+    -> ('Emily Davis', 6700, 'Infographic', 'Female', 30, 'Tesla'),
+    -> ('Fatima Khan', 3100, 'Video', 'Female', 27, 'OpenAI'),
+    -> ('George Martin', 1500, 'Blog', 'Male', 37, 'Google'),
+    -> ('Hannah White', 4900, 'Post', 'Female', 22, 'Microsoft'),
+    -> ('Ivan Petrov', 7400, 'Article', 'Male', 45, 'Amazon'),
+    -> ('Jasmine Li', 6100, 'Infographic', 'Female', 33, 'Meta');
+Query OK, 10 rows affected (0.00 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> describe users;
++--------------+--------------+------+-----+---------+----------------+
+| Field        | Type         | Null | Key | Default | Extra          |
++--------------+--------------+------+-----+---------+----------------+
+| id           | int          | NO   | PRI | NULL    | auto_increment |
+| name         | varchar(255) | YES  |     | NULL    |                |
+| followers    | int          | YES  |     | NULL    |                |
+| content_type | varchar(100) | YES  |     | NULL    |                |
+| gender       | varchar(10)  | YES  |     | NULL    |                |
+| age          | int          | YES  |     | NULL    |                |
+| organization | varchar(255) | YES  |     | NULL    |                |
++--------------+--------------+------+-----+---------+----------------+
+7 rows in set (0.02 sec)
