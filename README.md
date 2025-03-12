@@ -73,7 +73,11 @@ This repository contains practical examples of data warehousing concepts, includ
 
 ## Tools and Technologies ⚙️💻
 
-[MySQL](https://dev.mysql.com/doc/):  &nbsp; An open-source relational database management system for managing and organizing structured data using SQL.
+1. [MySQL](https://dev.mysql.com/doc/):  &nbsp; An open-source relational database management system for managing and organizing structured data using SQL. 
+2. [Python](https://www.python.org/doc/):  &nbsp; A high-level, interpreted programming language known for its readability and versatility. It supports multiple programming paradigms and is widely used for web development, data analysis, automation, and scientific computing.  
+3. [Pandas](https://pandas.pydata.org/docs/):  &nbsp; An open-source data analysis and manipulation library for Python. It provides data structures like DataFrames and Series, enabling efficient handling and analysis of structured data.  
+4. [NumPy](https://numpy.org/doc/):  &nbsp; A fundamental package for numerical computing in Python. It offers support for multi-dimensional arrays and matrices, along with a collection of mathematical functions for performing efficient operations on these data structures.   
+5. [MySQL Connector](https://dev.mysql.com/doc/connector-python/en/):  &nbsp; A Python library that enables connecting to a MySQL database server. It allows developers to execute SQL queries, manage database connections, and interact with MySQL databases directly from Python applications.
 
 ---
 
@@ -163,6 +167,15 @@ SQL queries were **optimized for large-scale data warehouse applications** using
 ### 8. [Data Aggregation for Reporting](Experiment%208)  
 
 This experiment implemented **data aggregation techniques** to generate **summarized views of large datasets**, enhancing **reporting and analytical efficiency**.
+
+### 9. [Designing and Implementing a Data Warehouse Report](Experiment%209)  
+This experiment involves generating business reports from a **MySQL data warehouse** using **SQL queries** and **Python** for data extraction and processing.
+
+### 10. [Real-time Data Warehousing using Streaming Data](Experiment%2010)  
+A **real-time data pipeline** is implemented with **Python**, continuously ingesting streaming data into a **MySQL data warehouse** for immediate analysis.
+
+### 11. [Implementing Slowly Changing Dimensions (SCD) in Data Warehousing](Experiment%2011)  
+This experiment applies **Slowly Changing Dimensions (SCD)** techniques in a **MySQL data warehouse**, developed using **Python** to maintain historical data accuracy.
 
 ---
 
