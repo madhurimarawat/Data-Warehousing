@@ -53,18 +53,11 @@ This repository contains practical examples of data warehousing concepts, includ
     <img src="https://img.shields.io/github/last-commit/madhurimarawat/Data-Warehousing?color=%23F39C12&label=Last%20Commit&labelColor=%23D68910&style=for-the-badge&logo=github" alt="Last Commit">
   </a>
 
-  <!-- Repository Age -->
-  <a href="https://github.com/madhurimarawat/Data-Warehousing">
-    <img src="https://img.shields.io/badge/Repo%20Age-1%20Month-%23A8D5BA?style=for-the-badge&logo=github" alt="Repository Age">
-  </a>
-
   <!-- Watchers -->
   <a href="https://github.com/madhurimarawat/Data-Warehousing/watchers">
     <img src="https://img.shields.io/github/watchers/madhurimarawat/Data-Warehousing?color=%23F5B041&label=Watchers&labelColor=%23D68910&style=for-the-badge&logo=github" alt="GitHub Watchers">
   </a>
 
-  <!-- Visitors Count -->
-  <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/madhurimarawat/Data-Warehousing&count_bg=%23FF6B8B&title_bg=%235A9DF9&icon=github.svg&icon_color=%23FFFFFF&title=Visitors&edge_flat=true" alt="Visitors">
 </p>
 
 <img src = "https://keyit.com.au/wp-content/uploads/2023/05/data-wearhousing-copy.webp" width= "100%" height= "530px">
